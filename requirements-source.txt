@@ -1,0 +1,19 @@
+# Source runtime only. This file does not build an executable.
+# Use Python 3.8.10 on Windows 7. Use a current supported Python on Windows 10 or 11.
+
+numpy>=1.21.6,<2.0
+
+matplotlib>=3.5,<3.8; python_version < "3.9"
+matplotlib>=3.8,<4.0; python_version >= "3.9"
+
+Pillow>=9.5,<11.0; python_version < "3.9"
+Pillow>=10.0,<13.0; python_version >= "3.9"
+
+# Standard Tk buttons can ignore custom foreground/background colours on macOS.
+# This drop-in widget keeps every colour-coded action legible in a future .app
+# bundle; it is not installed or used on Windows.
+tkmacosx==1.0.5; sys_platform == "darwin"
+
+# Qt 5 is retained only for the Windows 7 compatible Python 3.8 profile.
+PySide2==5.15.2.1; python_version < "3.9"
+PySide6>=6.5,<7.0; python_version >= "3.9"

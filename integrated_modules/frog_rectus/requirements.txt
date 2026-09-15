@@ -1,0 +1,5 @@
+# Windows 10 and 11 with Python 3.9 or newer
+PySide6>=6.5.0; python_version >= "3.9"
+
+# Windows 7 source setup uses Python 3.8 and the final PySide2 Qt 5 line
+PySide2==5.15.2.1; python_version < "3.9"

@@ -1,4 +1,7 @@
+# Pinned Apple-silicon macOS release-build dependencies (Python 3.11.9).
 matplotlib==3.10.6
-numpy==2.3.2
+numpy==2.3.5
 Pillow==11.3.0
-pyinstaller==6.15.0
+PyInstaller==6.22.2
+PySide6==6.9.2
+tkmacosx==1.0.5

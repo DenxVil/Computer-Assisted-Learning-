@@ -5,7 +5,11 @@ on:
     branches:
       - main
     paths:
-      - "macos_app/**"
+      - "main.py"
+      - "experiments/**"
+      - "ui/**"
+      - "integrated_modules/**"
+      - "assets/**"
       - "requirements-macos.txt"
       - ".github/workflows/build-macos.yml"
   workflow_dispatch:
@@ -13,25 +17,47 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: macos-public-beta-release
+  cancel-in-progress: true
+
+env:
+  RELEASE_TAG: v1.0.0-beta.1
+  ARCHIVE_NAME: Pharmacology_CAL_macOS_Public_Beta_v1.0.zip
+  CHECKSUM_NAME: Pharmacology_CAL_macOS_Public_Beta_v1.0_SHA256.txt
+
 jobs:
   build:
-    runs-on: macos-latest
+    # The standard macos-15 image is Apple silicon (arm64).
+    runs-on: macos-15
 
     steps:
       - name: Get source files
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.11.9"
           cache: pip
+          cache-dependency-path: requirements-macos.txt
 
-      - name: Install build packages
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements-macos.txt
+      - name: Confirm Apple silicon runner
+        run: |
+          python - <<'PY'
+          import platform
+
+          architecture = platform.machine().lower()
+          print(f"Building on {platform.platform()} ({architecture})")
+          if architecture not in {"arm64", "aarch64"}:
+              raise SystemExit("This release is intended for Apple silicon (arm64).")
+          PY
+
+      - name: Install pinned build packages
+        run: python -m pip install --disable-pip-version-check -r requirements-macos.txt
 
       - name: Check Python files
-        run: python -m compileall -q macos_app
+        run: python -m compileall -q main.py experiments ui integrated_modules
 
       - name: Build Mac application
         run: |
@@ -39,33 +65,47 @@ jobs:
             --noconfirm \
             --clean \
             --windowed \
+            --target-arch arm64 \
             --name "Pharmacology CAL" \
-            --icon "macos_app/assets/cal_public_beta.png" \
-            --add-data "macos_app/assets:assets" \
-            "macos_app/main.py"
+            --osx-bundle-identifier "in.ac.mamc.pharmacology-cal" \
+            --icon "assets/mamc_logo.png" \
+            --add-data "assets:assets" \
+            --collect-submodules "integrated_modules.frog_rectus" \
+            --collect-all "tkmacosx" \
+            --hidden-import "matplotlib.backends.backend_tkagg" \
+            main.py
 
-      - name: Sign and prepare download
+      - name: Test packaged application
+        run: '"dist/Pharmacology CAL.app/Contents/MacOS/Pharmacology CAL" --smoke-test'
+
+      - name: Sign and verify application
         run: |
           codesign --force --deep --sign - "dist/Pharmacology CAL.app"
+          codesign --verify --deep --strict --verbose=2 "dist/Pharmacology CAL.app"
+
+      - name: Prepare download and checksum
+        run: |
           ditto -c -k --sequesterRsrc --keepParent \
             "dist/Pharmacology CAL.app" \
-            "Pharmacology_CAL_macOS_Public_Beta_v1.0.zip"
-          shasum -a 256 "Pharmacology_CAL_macOS_Public_Beta_v1.0.zip" \
-            > "Pharmacology_CAL_macOS_Public_Beta_v1.0_SHA256.txt"
+            "$ARCHIVE_NAME"
+          shasum -a 256 "$ARCHIVE_NAME" > "$CHECKSUM_NAME"
+          test -s "$ARCHIVE_NAME"
+          test -s "$CHECKSUM_NAME"
 
       - name: Save workflow copy
         uses: actions/upload-artifact@v4
         with:
           name: Pharmacology CAL macOS Public Beta
+          if-no-files-found: error
           path: |
-            Pharmacology_CAL_macOS_Public_Beta_v1.0.zip
-            Pharmacology_CAL_macOS_Public_Beta_v1.0_SHA256.txt
+            ${{ env.ARCHIVE_NAME }}
+            ${{ env.CHECKSUM_NAME }}
 
-      - name: Add files to the public beta release
+      - name: Replace files in the public beta release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload v1.0.0-beta.1 \
-            "Pharmacology_CAL_macOS_Public_Beta_v1.0.zip" \
-            "Pharmacology_CAL_macOS_Public_Beta_v1.0_SHA256.txt" \
+          gh release upload "$RELEASE_TAG" \
+            "$ARCHIVE_NAME" \
+            "$CHECKSUM_NAME" \
             --clobber
