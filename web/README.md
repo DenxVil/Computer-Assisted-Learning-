@@ -46,7 +46,7 @@ and a Next.js web service. Use the same Render region for the API and database.
 4. Create the frontend as a Node web service. Set Root Directory to
    `web/frontend`, then configure:
 
-   - Build command: `corepack enable && pnpm install --frozen-lockfile && pnpm build`
+   - Build command: `pnpm install --frozen-lockfile && pnpm build`
    - Start command: `pnpm start`
    - `NODE_VERSION`: `24.21.0`
    - `NEXT_PUBLIC_API_URL`: `https://<your-api-service>.onrender.com`
