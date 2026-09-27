@@ -28,3 +28,15 @@ class Observation(Base):
     peak_height_mm: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     session: Mapped[ExperimentSession] = relationship(back_populates="observations")
+
+
+class BioassayUnknown(Base):
+    """Teacher-configured ACh stock; never returned in student API responses."""
+
+    __tablename__ = "bioassay_unknowns"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    code: Mapped[str] = mapped_column(String(24), unique=True, index=True)
+    stock_concentration_um: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+

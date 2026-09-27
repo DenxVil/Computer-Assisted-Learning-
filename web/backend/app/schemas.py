@@ -20,3 +20,44 @@ class ResponseResult(BaseModel):
     response_pct: float
     height_mm: float
     trace: list[TracePoint]
+
+
+class DogDoseRequest(BaseModel):
+    drug: str
+    dose: float = Field(gt=0, allow_inf_nan=False)
+    dose_unit: str
+    prior_drugs: list[dict] = Field(default_factory=list)
+
+
+class RabbitObservationRequest(BaseModel):
+    drug: str
+    drug_eye: str
+    tool: str
+
+
+class BioassaySampleRequest(BaseModel):
+    stock_value: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    stock_unit: str = "µg/mL"
+
+
+class BioassayDoseRequest(BaseModel):
+    sample_id: str
+    solution: str
+    input_value: float = Field(gt=0, allow_inf_nan=False)
+    unit: str
+
+
+class BioassayCalculationRequest(BaseModel):
+    sample_id: str
+    method: str
+    records: list[dict]
+
+
+class FrogDrcRequest(BaseModel):
+    drug: str
+    antagonist_concentrations_um: list[float] = Field(default_factory=lambda: [0.0])
+
+
+class FrogWashRequest(BaseModel):
+    current_height_mm: float = Field(ge=5, allow_inf_nan=False)
+
