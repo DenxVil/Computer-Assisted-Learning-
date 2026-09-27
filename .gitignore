@@ -1,4 +1,9 @@
 # ===== Python =====
+web/backend/.venv/
+web/frontend/node_modules/
+web/frontend/.next/
+web/frontend/tsconfig.tsbuildinfo
+
 __pycache__/
 *.py[cod]
 *$py.class

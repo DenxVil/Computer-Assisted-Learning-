@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cal
+      POSTGRES_USER: cal
+      POSTGRES_PASSWORD: cal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cal -d cal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build:
+      context: .
+      dockerfile: web/backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://cal:cal@db:5432/cal
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    image: node:22-alpine
+    working_dir: /app/web/frontend
+    volumes:
+      - ./web/frontend:/app/web/frontend
+      - frontend_modules:/app/web/frontend/node_modules
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+volumes:
+  postgres_data:
+  frontend_modules:
