@@ -1,7 +1,9 @@
 {
   "name": "cal-web",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
+  "packageManager": "pnpm@11.25.0",
+  "engines": { "node": ">=22 <25" },
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start --hostname 0.0.0.0" },
   "dependencies": {
     "next": "^15.2.0",
     "react": "^19.0.0",
